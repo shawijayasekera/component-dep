@@ -16,15 +16,17 @@
 package com.wso2telco.dep.operatorservice;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import com.wso2telco.core.dbutils.exception.BusinessException;
-import com.wso2telco.core.dbutils.exception.ServiceError;
-import com.wso2telco.core.dbutils.fileutils.PropertyFileReader;
+import java.util.*;
+
 import com.wso2telco.dep.operatorservice.dao.WorkflowDAO;
 import com.wso2telco.dep.operatorservice.exception.StoreHostObjectException;
-import com.wso2telco.dep.operatorservice.model.WorkflowReferenceDTO;
+import com.wso2telco.dep.operatorservice.model.*;
+import com.wso2telco.dep.operatorservice.newModels.*;
+import feign.Feign;
+import feign.auth.BasicAuthRequestInterceptor;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mozilla.javascript.Context;
@@ -34,10 +36,20 @@ import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import com.wso2telco.dep.operatorservice.dao.OperatorDAO;
-import com.wso2telco.dep.operatorservice.model.Operator;
-import com.wso2telco.dep.operatorservice.model.OperatorSearchDTO;
 import com.wso2telco.dep.operatorservice.service.OparatorService;
+import org.wso2.carbon.apimgt.api.APIConsumer;
+import org.wso2.carbon.apimgt.api.APIManagementException;
+import org.wso2.carbon.apimgt.api.model.Tier;
+import org.wso2.carbon.apimgt.impl.APIConstants;
+import org.wso2.carbon.apimgt.impl.APIManagerFactory;
+import org.wso2.carbon.apimgt.impl.workflow.*;
+import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.user.api.UserStoreException;
 
+
+import static org.wso2.carbon.apimgt.hostobjects.APIStoreHostObject.isStringArray;
+import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
 
 
 public class StoreHostObject extends ScriptableObject {
@@ -54,6 +66,34 @@ public class StoreHostObject extends ScriptableObject {
 
     /** The hostobject name. */
     private String hostobjectName = "StoreHostObject";
+
+    private static final String TENANT_ID = "-1234";
+    private static final String APPLICATION_CREATION_APPROVAL_PROCESS_NAME = "application_creation_approval_process";
+    public static final String APPLICATION_NAME = "applicationName";
+    private static final String APPLICATION_ID = "applicationId";
+    private static final String WORKFLOW_REF_ID = "workflowRefId";
+    private static final String CALL_BACK_URL = "callBackUrl";
+    private static final String OPERATORS = "operators";
+    private static final String DEPLOYMENT_TYPE = "deployment_type";
+    private static final String OPERATORS_SYSTEM_PARAM = "OPERATORS";
+
+    public static final String TIER = "tier";
+    private static final String DESCRIPTION = "description";
+    private static final String TENANT_DOMAIN = "tenantDomain";
+    public static final String USER_NAME = "userName";
+    private static final String EXTERNAL_REFERENCE = "externalWorkflowReferenc";
+    private static final String TIERS_STR = "tiersStr";
+    private static final String ADMIN_USER = "adminUserName";
+    private static final String ADMIN_PASSWORD = "adminPassword";
+    private static final String SERVICE_HOST = "service.host";
+    private static final String SERVICE_URL = "serviceURL";
+    private static final String MANDATE_SERVICE_HOST = "mandate.service.host";
+    private static final String MANDATE_SERVICE_URL = "mandateServiceURL";
+    private static final String OPERATOR_STATUS = "newOperatorList";
+
+    private static String serviceEndpoint;
+    private static String username;
+    private static String password;
 
     /*
      * (non-Javadoc)
@@ -100,6 +140,247 @@ public class StoreHostObject extends ScriptableObject {
 
         return operatorList;
     }
+
+    /**
+     *
+     * @param cx
+     * @param thisObj
+     * @param args
+     * @param funObj
+     * @return
+     * @throws StoreHostObjectException
+     */
+    public static List<Operator> jsFunction_retrieveNewOperatorList(Context cx,
+                                                                 Scriptable thisObj,
+                                                                 Object[] args,
+                                                                 Function funObj) throws StoreHostObjectException {
+
+//        List<Operator> operatorList = null;
+
+/*        List<Operator> operatorList = null;
+
+        try {
+            OperatorSearchDTO searchDTO = new OperatorSearchDTO();
+            operatorList = new OparatorService().loadOperators(searchDTO);
+
+        } catch (Exception e) {
+            handleException("Error occured while retrieving operator list. ", e);
+        }
+
+        return operatorList;
+*/
+
+
+        List<Operator> operatorList = new ArrayList<Operator>();
+
+        try {
+            Operator operator3 = new Operator();
+            Operator operator4 = new Operator();
+            operator3.setOperatorId(3);
+            operator3.setOperatorName("OPERATOR3");
+            operator3.setOperatorDescription("New Opearator 3");
+            operatorList.add(operator3);
+            operator4.setOperatorId(4);
+            operator4.setOperatorName("OPERATOR4");
+            operator4.setOperatorDescription("New Opearator 4");
+            operatorList.add(operator4);
+
+        } catch (Exception e) {
+            handleException("Error occured while retrieving operator list. ", e);
+        }
+
+        return operatorList;
+
+    }
+
+
+    /**
+     *
+     * @param cx
+     * @param thisObj
+     * @param args
+     * @param funObj
+     * @return
+     * @throws StoreHostObjectException
+     */
+    public static String jsFunction_operatorApplicationApproval(Context cx,
+                                                                    Scriptable thisObj,
+                                                                    Object[] args,
+                                                                    Function funObj) throws StoreHostObjectException, WorkflowException, UserStoreException {
+
+
+        String status = null;
+        if (args != null && args.length >= 4 && isStringArray(args)) {
+
+            String appName = (String)args[0];
+            String usrName = (String)args[2];
+
+            if (StringUtils.isEmpty(appName.trim())) {
+                handleException("Application Name is empty.");
+            }
+
+            String tier1 = (String)args[3];
+            if (StringUtils.isEmpty(tier1.trim())) {
+                handleException("No tier is defined for the Application.");
+            }
+
+            String callbackUrl = (String)args[4];
+            String appDescription = (String)args[5];
+            String appId = (String)args[1];
+            String deploymentPattern = (String)args[6];
+            String operatorList = (String) args[7];
+
+
+            try {
+
+                WorkflowExecutor appCreationWFExecutor = WorkflowExecutorFactory.getInstance().
+                        getWorkflowExecutor(WorkflowConstants.WF_TYPE_AM_APPLICATION_CREATION);
+
+                try{
+                    username = appCreationWFExecutor.getClass().getMethod("getUsername").invoke(appCreationWFExecutor).toString();
+                    password = appCreationWFExecutor.getClass().getMethod("getPassword").invoke(appCreationWFExecutor).toString();
+                    serviceEndpoint = appCreationWFExecutor.getClass().getMethod("getServiceEndpoint").invoke(appCreationWFExecutor).toString();
+                }catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+
+                BusinessProcessApi api = Feign.builder()
+                        .encoder(new JacksonEncoder())
+                        .decoder(new JacksonDecoder())
+                        //.errorDecoder(new WorkflowErrorDecoder())
+                        .requestInterceptor(new BasicAuthRequestInterceptor(username, password))
+                        .target(BusinessProcessApi.class, serviceEndpoint);
+
+                ApiMgtDAO apiMgtDAO = ApiMgtDAO.getInstance();
+                int applicationid = apiMgtDAO.getApplicationId(appName, usrName);
+
+                CreateProcessInstanceRequest
+                        processInstanceRequest = new CreateProcessInstanceRequest(APPLICATION_CREATION_APPROVAL_PROCESS_NAME,
+                        TENANT_ID);
+                processInstanceRequest.setBusinessKey(appCreationWFExecutor.generateUUID());
+
+                // TODO: how to read 'deployment_type' / how to check if hub flow or hub-as-a-gateway flow??
+                // currently this is read from a java system parameter
+                APIConsumer consumer = APIManagerFactory.getInstance().getAPIConsumer();
+                Set<Tier> tierSet = consumer.getTiers(APIConstants.TIER_APPLICATION_TYPE, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(true));
+                StringBuilder tiersStr = new StringBuilder();
+
+                for (Iterator iterator = tierSet.iterator(); iterator.hasNext(); ) {
+                    Tier tier = (Tier) iterator.next();
+                    String tierName = tier.getName();
+                    tiersStr.append(tierName + ',');
+                }
+
+                String ID = String.valueOf(appCreationWFExecutor.generateUUID());
+
+                Map<String, String> workflowProperties = WorkflowProperties.loadWorkflowPropertiesFromXML();
+                String serviceURLString = workflowProperties.get(SERVICE_HOST);
+                String mandateServiceURLString = workflowProperties.get(MANDATE_SERVICE_HOST);
+
+                Variable deploymentType = new Variable(DEPLOYMENT_TYPE, deploymentPattern);
+                Variable applicationName = new Variable(APPLICATION_NAME, appName);
+                Variable workflorRefId = new Variable(WORKFLOW_REF_ID, appCreationWFExecutor.generateUUID());
+                Variable callBackUrl = new Variable(CALL_BACK_URL, appCreationWFExecutor.getCallbackURL());
+                Variable applicationId = new Variable(APPLICATION_ID, String.valueOf(applicationid));  // this is not used for workflow
+                Variable tier = new Variable(TIER, (String)args[3]);
+                Variable description = new Variable(DESCRIPTION, appDescription);
+                Variable tenantDomain = new Variable(TENANT_DOMAIN, "carbon.super");
+                Variable userName = new Variable(USER_NAME, (String)args[2]);
+                Variable externalWorkflowReference = new Variable(EXTERNAL_REFERENCE, appCreationWFExecutor.generateUUID());
+                Variable tiers = new Variable(TIERS_STR, tiersStr.toString());
+                Variable serviceURL = new Variable(SERVICE_URL, serviceURLString);
+                Variable mandateServiceURL = new Variable(MANDATE_SERVICE_URL, mandateServiceURLString);
+                Variable adminUserName = new Variable(ADMIN_USER, CarbonContext
+                        .getThreadLocalCarbonContext()
+                        .getUserRealm()
+                        .getRealmConfiguration().getAdminUserName());
+                Variable adminPassword = new Variable(ADMIN_PASSWORD, CarbonContext
+                        .getThreadLocalCarbonContext()
+                        .getUserRealm()
+                        .getRealmConfiguration().getAdminPassword());
+                Variable operatorStatus = new Variable(OPERATOR_STATUS, "newOperatorTask");
+
+
+                Variable operators = new Variable(OPERATORS, operatorList);
+                if (operators == null) {
+                    throw new WorkflowException("No operator(s) defined!!");
+                }
+
+                log.info(" deployment type: " + deploymentType +
+                        "\n applicationName: " + applicationName +
+                        "\n workflow reference id: " + workflorRefId +
+                        "\n callback url: " + callBackUrl +
+                        "\n operators: " + operatorList +
+                        "\n applicationId: " + applicationId +
+                        "\n tier: " + tier +
+                        "\n description: " + description +
+                        "\n tenantDomain: " + tenantDomain +
+                        "\n userName: " + usrName +
+                        "\n externalWorkflowReference :" + externalWorkflowReference +
+                        "\n tiers :" + tiers +
+                        "\n service endpoint: " + serviceURLString +
+                        "\n --------------------------------" +
+                        "\n serviceURL: " + serviceURL +
+                        "\n mandateServiceURL: " + mandateServiceURL +
+                        "\n adminUserName: " + adminUserName +
+                        "\n adminPassword: " + adminPassword +
+                        "\n operatorStatus: " + operatorStatus
+                );
+
+
+                List<Variable> variables = new ArrayList<Variable>();
+
+                variables.add(deploymentType);
+                variables.add(applicationName);
+                variables.add(workflorRefId);
+                variables.add(callBackUrl);
+                variables.add(operators);
+                variables.add(applicationId);
+                variables.add(tier);
+                variables.add(description);
+                variables.add(tenantDomain);
+                variables.add(userName);
+                variables.add(externalWorkflowReference);
+                variables.add(tiers);
+                variables.add(serviceURL);
+                variables.add(adminUserName);
+                variables.add(adminPassword);
+                variables.add(mandateServiceURL);
+                variables.add(operatorStatus);
+                processInstanceRequest.setVariables(variables);
+                CreateProcessInstanceResponse processInstanceResponse;
+
+                try {
+                    processInstanceResponse = api.createProcessInstance(processInstanceRequest);
+                } catch (WorkflowExtensionException e) {
+                    throw new WorkflowException("WorkflowException: " + e.getMessage(), e);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Process definition url: " + processInstanceResponse.getProcessDefinitionUrl());
+                }
+                log.info("Application Creation approval process instance task with business key " +
+                        appCreationWFExecutor.generateUUID() + " created successfully");
+
+                status = "Success";
+            }
+            catch (APIManagementException e) {
+                log.error("Error in obtaining APIConsumer", e);
+                throw new WorkflowException("Error in obtaining APIConsumer", e);
+            } catch (UserStoreException e) {
+                log.error("Error in obtaining APIConsumer", e);
+                throw new WorkflowException("Error in obtaining APIConsumer", e);
+            }
+
+        } else {
+            handleException("Missing parameters.");
+            status = "Failed";
+        }
+
+        return status;
+    }
+
+
 
     /**
      *

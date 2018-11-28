@@ -10,6 +10,10 @@ jagg.block("application/application-view", {
         var oauthapp = null;
         var scopes = [];
         var grant_types = [];
+        var operators, operatorsOut = null;
+
+        var store = jagg.module("manager").getStoreHostObject();
+
         if (user) {
             username = user.username;
             var applicationName = request.getParameter("name");
@@ -35,6 +39,8 @@ jagg.block("application/application-view", {
             }
 
             grant_types = mod.getAllowedGrantTypes();
+            operators = store.retrieveNewOperatorList();
+            log.info(operators);
         }
 
         var tiers, result;
@@ -50,7 +56,8 @@ jagg.block("application/application-view", {
             "application" : application,
             "scopes": scopes,
             "oauthapp": oauthapp,
-            "grant_types":grant_types
+            "grant_types":grant_types,
+            "operators":operators
         };
     }
 });

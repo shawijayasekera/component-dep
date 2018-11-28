@@ -1,4 +1,4 @@
-<%
+z<%
 var i18n = require("i18n");
 var localeResourcesBasePath = "/site/conf/locales/jaggery/";
 var tenantDomain = jagg.getTenantDomain();

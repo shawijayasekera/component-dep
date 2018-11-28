@@ -101,10 +101,17 @@
             <artifactId>oneapi-validation</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-jackson</artifactId>
+        </dependency>
+		<dependency>
             <groupId>com.wso2telco.dep</groupId>
             <artifactId>user-masking</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

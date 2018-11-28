@@ -19,6 +19,9 @@ package com.wso2telco.workflow.approval.application.servicetask;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.wso2telco.workflow.approval.application.rest.client.HubWorkflowApi;
+import com.wso2telco.workflow.approval.exception.HubWorkflowCallbackApiErrorDecoder;
+import com.wso2telco.workflow.approval.model.Application;
 import com.wso2telco.workflow.approval.model.NotificationRequest;
 import com.wso2telco.workflow.approval.subscription.rest.client.NotificationApi;
 import com.wso2telco.workflow.approval.subscription.rest.client.WorkflowCallbackErrorDecoder;
@@ -50,10 +53,11 @@ public class OperatorListConverter implements JavaDelegate {
 	    arg0.setVariable("operatorList", operatorNames);
         arg0.setVariable("operatorRoles", operatorsRoles);
         String deploymentType = arg0.getVariable(Constants.DEPLOYMENT_TYPE) != null ? arg0.getVariable(Constants.DEPLOYMENT_TYPE).toString() : null;
+        String operatorType = arg0.getVariable(Constants.OPERATOR_STATUS) != null ? arg0.getVariable(Constants.OPERATOR_STATUS).toString() : null;
+
 
         if(deploymentType.equalsIgnoreCase(Constants.HUB)) {
 
-            AuthRequestInterceptor authRequestInterceptor = new AuthRequestInterceptor();
             String adminUserName = arg0.getVariable(Constants.ADMIN_USER_NAME) != null ? arg0.getVariable(Constants.ADMIN_USER_NAME).toString() : null;
             String adminPassword = arg0.getVariable(Constants.ADMIN_PASSWORD).toString();
             String serviceUrl = arg0.getVariable(Constants.SERVICE_URL) != null ? arg0.getVariable(Constants.SERVICE_URL).toString() : null;
@@ -62,21 +66,49 @@ public class OperatorListConverter implements JavaDelegate {
             String applicationDescription = arg0.getVariable(Constants.DESCRIPTION) != null ? arg0.getVariable(Constants.DESCRIPTION).toString() : null;
             String userName = arg0.getVariable(Constants.USER_NAME) != null ? arg0.getVariable(Constants.USER_NAME).toString() : null;
             String completedByRole = Constants.WORKFLOW_ADMIN_ROLE;
+            int applicationId = arg0.getVariable(Constants.APPLICATION_ID) != null ? Integer.parseInt(arg0.getVariable(Constants.APPLICATION_ID).toString()) : null;
+            String status = arg0.getVariable(Constants.OPERATOR_STATUS) != null ? arg0.getVariable(Constants.OPERATOR_STATUS).toString() : null;
+            String operatorName = arg0.getVariable(Constants.OPERATORS) != null ? arg0.getVariable(Constants.OPERATORS).toString() : null;
 
-            NotificationApi apiNotification = Feign.builder()
-                    .encoder(new JacksonEncoder())
-                    .decoder(new JacksonDecoder())
-                    .errorDecoder(new WorkflowCallbackErrorDecoder())
-                    .requestInterceptor(authRequestInterceptor.getBasicAuthRequestInterceptor(adminUserName, adminPassword))
-                    .target(NotificationApi.class, serviceUrl);
+            if(operatorType != null && operatorType.equalsIgnoreCase(Constants.NEW_OPERATOR)){
+                log.info("*********** New operator application approval task. *************");
+                log.info("New Operator list : " + operatorList);
 
-            NotificationRequest notificationRequest = new NotificationRequest();
-            notificationRequest.setApplicationName(applicationName);
-            notificationRequest.setApplicationTier(selectedTier);
-            notificationRequest.setApplicationDescription(applicationDescription);
-            notificationRequest.setUserName(userName);
-            notificationRequest.setReceiverRole(completedByRole);
-            apiNotification.sendHUBAdminAppApprovalNotification(notificationRequest);
+                AuthRequestInterceptor authRequestInterceptor = new AuthRequestInterceptor();
+
+                HubWorkflowApi api = Feign.builder()
+                        .encoder(new JacksonEncoder())
+                        .decoder(new JacksonDecoder())
+                        .errorDecoder(new HubWorkflowCallbackApiErrorDecoder())
+                        .requestInterceptor(authRequestInterceptor.getBasicAuthRequestInterceptor(adminUserName,adminPassword))
+                        .target(HubWorkflowApi.class,serviceUrl);
+                Application application = new Application();
+                application.setApplicationID(applicationId);
+                application.setStatus(status);
+                application.setOperatorName(operatorName);
+                application.setSelectedTier(selectedTier);
+                api.applicationApprovalHub(application);
+
+            }
+            else {
+
+                AuthRequestInterceptor authRequestInterceptor = new AuthRequestInterceptor();
+
+                NotificationApi apiNotification = Feign.builder()
+                        .encoder(new JacksonEncoder())
+                        .decoder(new JacksonDecoder())
+                        .errorDecoder(new WorkflowCallbackErrorDecoder())
+                        .requestInterceptor(authRequestInterceptor.getBasicAuthRequestInterceptor(adminUserName, adminPassword))
+                        .target(NotificationApi.class, serviceUrl);
+
+                NotificationRequest notificationRequest = new NotificationRequest();
+                notificationRequest.setApplicationName(applicationName);
+                notificationRequest.setApplicationTier(selectedTier);
+                notificationRequest.setApplicationDescription(applicationDescription);
+                notificationRequest.setUserName(userName);
+                notificationRequest.setReceiverRole(completedByRole);
+                apiNotification.sendHUBAdminAppApprovalNotification(notificationRequest);
+            }
 
         }
 

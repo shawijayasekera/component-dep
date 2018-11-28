@@ -3,6 +3,13 @@
  var oauthapp = outputs.oauthapp;
  jagg.log(outputs.tiers);
 
+var log = new Log();
+log.info(outputs);
+var i, length, app, api = outputs.api, apps = outputs.applications, user = outputs.user, operators=outputs.operators;
+
+var subsPermitted = jagg.module("subscription").hasSubscribePermission().permitted;
+
+
 var app_tier;
 for(var i=0;i < outputs.tiers.length; i++){
   if(outputs.tiers[i].tierName == application.tier){
@@ -14,6 +21,8 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
 %>
 <div class="page-header" id="Message">
     <h2 id="application_name"><%= encode.forHtml(application.name) %></h2>
+    <input type="hidden" id="application-name" value="<%= encode.forHtml(application.name)%>" />
+    <input type="hidden" id="application-id" value="<%= encode.forHtml(application.id)%>" />
 </div>
   <!-- Nav tabs -->
   <div class="white-wrapper">
@@ -23,6 +32,7 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
       <li role="presentation"><a title="<%=i18n.localize("Production Keys")%>" href="#production" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Production Keys")%></a></li>
       <li role="presentation"><a title="<%=i18n.localize("Sandbox Keys")%>" href="#sandbox" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Sandbox Keys")%></a></li>
       <li role="presentation"><a title="<%=i18n.localize("Subscriptions")%>" href="#subscription" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Subscriptions")%></a></li>
+      <li role="presentation"><a title="<%=i18n.localize("New Operator")%>" href="#new-operator" aria-controls="profile" role="tab" data-toggle="tab">Operators</a></li>
       <% if (supportedLangs.langs != null) { %>
       <li role="presentation"><a title="<%=i18n.localize("SDKs")%>"  href="#sdks" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("SDKs")%></a></li>
       <% } %>
@@ -49,10 +59,11 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
   <div class="form-group">
     <label class="col-sm-3 control-label"><%=i18n.localize("Description")%></label>
     <div class="col-sm-9">
-      <p class="form-control-static"><%if(application.description){%><%=encode.forHtml(application.description) %><% }else{%><%=i18n.localize("Not Given")%><%}%></p>
+      <p class="form-control-static" id="description"><%if(application.description){%><%=encode.forHtml(application.description) %><% }else{%><%=i18n.localize("Not Given")%><%}%></p>
+      <input type="hidden" id="app-description" value="<%= encode.forHtml(application.description)%>" />
     </div>
-  </div>  
-</form>      
+  </div>
+</form>
       </div>
       <% if(application.status == "APPROVED"){ %>
       <div role="tabpanel" class="tab-pane fade production-keys" id="production">
@@ -60,11 +71,11 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
 
         jagg.log(application);
         var prodGrants = "";
-        var redirect_uris = "";        
+        var redirect_uris = "";
         if(oauthapp.prodJsonString != undefined){
           var tmp = parse(oauthapp.prodJsonString);
           prodGrants = tmp["grant_types"];
-          redirect_uris = tmp["redirect_uris"];          
+          redirect_uris = tmp["redirect_uris"];
         }
         var prodapp = {
             name: application.name,
@@ -82,17 +93,17 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
       </div>
       <%
         jagg.log(oauthapp);
-        
+
         var sandboxGrants = "";
         var redirect_uris = "";
         if(oauthapp.sandboxJsonString != undefined){
           var sandboxJson = parse(oauthapp.sandboxJsonString);
           sandboxGrants = sandboxJson["grant_types"];
           redirect_uris = sandboxJson["redirect_uris"];
-        }        
+        }
         var sandapp = {
             name: application.name,
-            callbackUrl: redirect_uris,            
+            callbackUrl: redirect_uris,
             ConsumerKey: oauthapp.sandboxConsumerKey,
             ConsumerSecret: oauthapp.sandboxConsumerSecret,
             Key: oauthapp.sandboxKey,
@@ -102,12 +113,86 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
             keyState: oauthapp.sandboxKeyState,
             grants:sandboxGrants
         }
-      %>      
+      %>
       <div role="tabpanel" class="tab-pane fade sandbox-keys" id="sandbox">
-      </div>      
-      <div role="tabpanel" class="tab-pane fade" id="subscription">      
-      <% jagg.includeBlock("subscription/subscribed-apis", { "application": application }); %>    
       </div>
+      <div role="tabpanel" class="tab-pane fade" id="subscription">
+      <% jagg.includeBlock("subscription/subscribed-apis", { "application": application }); %>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="new-operator">
+      
+        <div class="col-xs-12 col-sm-12 col-md-8 col-lg-5 col-md-height col-md-top">
+
+                    <form class="form-api-subscription add-padding-4x">
+
+                    <div class="row add-margin-top-2x add-margin-bottom-3x">
+		            <div class="col-md-12">
+                    <h4>Subscribe New Operators Types</h4>
+			        <p>You can subscribe your application with new operators from the below list.</p>
+                    </div>
+                    </div>
+
+                      <div class="form-group">
+                      <%
+                               var tiersAvailable = false;
+                               var mod = jagg.module("manager");
+                               var storeHostObject = mod.getStoreHostObject(); //changed from get getstoreObj
+                               result = storeHostObject.getDeploymentType();
+                                log.info(result);
+                                log.info(operators);
+                                log.info(tiersAvailable);
+                                tiersAvailable = true;
+                               if(result == "hub")
+                               {
+                               %>
+                                   <!-- this is oparater-->
+                                   <Label><b>Operator List</b></Label><br/>
+
+                                   <select id="operator-list" name="operators" multiple="multiple" class="required"
+                                      <% if(operators.size()==1){%>
+                                      style="display: none;"
+                                    <%}%>>
+
+                                   <%
+                                   print(operators);
+                                   for(i = 0; i < operators.size(); i++) {
+                                        operator = operators.get(i);
+                                        %><option value="<%=operator.operatorName%>"><%= operator.getOperatorName()%></option>
+                                   <%
+                                   }
+
+                                   log.info(operator);
+                                   %>
+                                   </select>
+                                   <br/> <br/>
+                                   <!-- this is oparater end-->
+                                   <%
+
+                               }
+                      %>
+
+                      </div>
+
+                      <input type="hidden" id="tiers-list" value="Default" />
+
+                      	<button type="button" onclick="triggerOperatorSubscribe('<%=result%>')" id="operator-add-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
+                               class="btn btn-primary btn-mobile<% if(!user) { %>need-login<% } %>">
+
+                              <span class="icon fw-stack"
+                      	        <i class="fw fw-subscribe fw-stack-1x"></i>
+                      	        <i class="fw fw-circle-outline fw-stack-2x"></i>
+                              </span>
+                              Subscribe
+                              <%if(!tiersAvailable){%>
+                              <span id="subsBtnDesc" class="help-block">You may not be entitled to any of the available tiers")</span>
+                              <%}%>
+                      	</button>
+
+                      </form>
+        </div>
+
+      </div>
+
       <div role="tabpanel" class="tab-pane fade" id="sdks">
 
         <%

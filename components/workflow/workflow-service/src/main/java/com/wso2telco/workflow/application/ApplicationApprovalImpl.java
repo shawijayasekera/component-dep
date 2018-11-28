@@ -24,6 +24,7 @@ import com.wso2telco.workflow.dao.WorkflowDbService;
 import com.wso2telco.workflow.model.Application;
 import com.wso2telco.workflow.utils.ApprovelStatus;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,15 +33,24 @@ public class ApplicationApprovalImpl implements ApplicationApproval{
 	private WorkflowDbService dbservice = null;
 
 	public void updateDBAppHubApproval (
-            Application appHUBApprovalDBUpdateRequest) throws Exception {
+	        Application appHUBApprovalDBUpdateRequest) throws Exception {
 		
-		int appID = appHUBApprovalDBUpdateRequest.getApplicationID();
-        Integer[] opIDs;
-        int counter = 0;
-           dbservice = new WorkflowDbService();
+    		int appID = appHUBApprovalDBUpdateRequest.getApplicationID();
+	    	String status = appHUBApprovalDBUpdateRequest.getStatus();
+            Integer[] opIDs;
+            int counter = 0;
+            dbservice = new WorkflowDbService();
 
-        	List<Operator> operatorList = dbservice.getOperators();
-        	opIDs = new Integer[operatorList.size()];
+            List<Operator> operatorList = new ArrayList<Operator>();
+
+            if (status.equalsIgnoreCase("newOperatorTask")){
+                String[] newOperatorList = appHUBApprovalDBUpdateRequest.getOperatorName().toString().split(",");
+            }
+            else{
+                 operatorList = dbservice.getOperators();
+            }
+
+            opIDs = new Integer[operatorList.size()];
         	for (Iterator<Operator> iterator = operatorList.iterator(); iterator.hasNext();) {
         		Operator operator = (Operator) iterator.next();
 				opIDs[counter] = operator.getOperatorId();
