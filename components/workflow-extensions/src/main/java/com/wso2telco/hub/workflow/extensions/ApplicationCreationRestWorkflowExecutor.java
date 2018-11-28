@@ -104,7 +104,7 @@ public class ApplicationCreationRestWorkflowExecutor extends WorkflowExecutor {
 
 
 
-    public WorkflowResponse execute(WorkflowDTO workflowDTO) throws WorkflowException {
+    public WorkflowResponse appCreationWFExecutor(WorkflowDTO workflowDTO) throws WorkflowException {
 
         OperatorApi operatorApi = new OperatorImpl();
 
@@ -175,6 +175,22 @@ public class ApplicationCreationRestWorkflowExecutor extends WorkflowExecutor {
                         ", workflow reference id: " + workflorRefId + ", service endpoint: " + serviceEndpoint + ", tier: " + tier + ", description: " + description +
                         ", tenantDomain: " + tenantDomain + ", userName: " + userName + ",externalWorkflowReference :" + externalWorkflowReference + ",tiers :" + tiers);
             }
+
+            log.info("deployment type: " + deploymentType +
+                        "\n , applicationName: " + applicationName +
+                        "\n , workflow reference id: " + workflorRefId +
+                        "\n , callback url: " + callBackURL +
+                        "\n , operators: *******" +
+                        "\n , applicationId: " + applicationId +
+                        "\n , tier: " + tier +
+                        "\n , description: " + description +
+                        "\n , tenantDomain: " + tenantDomain +
+                        "\n , userName: " + userName +
+                        "\n ,externalWorkflowReference :" + externalWorkflowReference +
+                        "\n ,tiers :" + tiers +
+                        "\n , service endpoint: " + serviceEndpoint
+            );
+
 
             List<Variable> variables = new ArrayList<Variable>();
 
