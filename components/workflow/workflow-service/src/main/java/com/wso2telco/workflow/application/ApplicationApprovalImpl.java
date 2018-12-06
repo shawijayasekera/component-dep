@@ -25,6 +25,7 @@ import com.wso2telco.workflow.model.Application;
 import com.wso2telco.workflow.utils.ApprovelStatus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,28 +42,37 @@ public class ApplicationApprovalImpl implements ApplicationApproval{
             int counter = 0;
             dbservice = new WorkflowDbService();
 
-            List<Operator> operatorList = new ArrayList<Operator>();
+            List<Operator> operatorList = dbservice.getOperators();
+            opIDs = new Integer[operatorList.size()];
 
             if (status.equalsIgnoreCase("newOperatorTask")){
-                String[] newOperatorList = appHUBApprovalDBUpdateRequest.getOperatorName().toString().split(",");
+                String[] newOperatorList = appHUBApprovalDBUpdateRequest.getOperatorName().split(",");
+
+                opIDs = new Integer[newOperatorList.length];
+                for (Iterator<Operator> iterator = operatorList.iterator(); iterator.hasNext();) {
+                    Operator operator = (Operator) iterator.next();
+                    if(Arrays.asList(newOperatorList).contains(operator.getOperatorName().toLowerCase())){
+                        opIDs[counter] = operator.getOperatorId();
+                        counter++;
+                    }
+                }
             }
             else{
-                 operatorList = dbservice.getOperators();
+                for (Iterator<Operator> iterator = operatorList.iterator(); iterator.hasNext();) {
+                    Operator operator = (Operator) iterator.next();
+                    opIDs[counter] = operator.getOperatorId();
+                    counter++;
+                }
             }
 
-            opIDs = new Integer[operatorList.size()];
-        	for (Iterator<Operator> iterator = operatorList.iterator(); iterator.hasNext();) {
-        		Operator operator = (Operator) iterator.next();
-				opIDs[counter] = operator.getOperatorId();
-				counter++;
-			}
+            System.out.print(opIDs.length);
 
-          dbservice.applicationEntry(appID, opIDs);
+            dbservice.applicationEntry(appID, opIDs);
+            //Update tier of the application
+            String selectedTier = appHUBApprovalDBUpdateRequest.getSelectedTier();
+            WorkflowDAO workflowDAO = new WorkflowDAO();
+            workflowDAO.updateApplicationTier(String.valueOf(appID), selectedTier);
 
-          //Update tier of the application
-          String selectedTier = appHUBApprovalDBUpdateRequest.getSelectedTier();
-          WorkflowDAO workflowDAO = new WorkflowDAO();
-          workflowDAO.updateApplicationTier(String.valueOf(appID), selectedTier);
 	}
 
 

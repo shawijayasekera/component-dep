@@ -21,7 +21,7 @@ import java.util.*;
 import com.wso2telco.dep.operatorservice.dao.WorkflowDAO;
 import com.wso2telco.dep.operatorservice.exception.StoreHostObjectException;
 import com.wso2telco.dep.operatorservice.model.*;
-import com.wso2telco.dep.operatorservice.newModels.*;
+import com.wso2telco.dep.operatorservice.newOperatorModels.*;
 import feign.Feign;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.jackson.JacksonDecoder;
@@ -75,7 +75,6 @@ public class StoreHostObject extends ScriptableObject {
     private static final String CALL_BACK_URL = "callBackUrl";
     private static final String OPERATORS = "operators";
     private static final String DEPLOYMENT_TYPE = "deployment_type";
-    private static final String OPERATORS_SYSTEM_PARAM = "OPERATORS";
 
     public static final String TIER = "tier";
     private static final String DESCRIPTION = "description";
@@ -90,6 +89,7 @@ public class StoreHostObject extends ScriptableObject {
     private static final String MANDATE_SERVICE_HOST = "mandate.service.host";
     private static final String MANDATE_SERVICE_URL = "mandateServiceURL";
     private static final String OPERATOR_STATUS = "newOperatorList";
+    private static final String NEW_OPERATOR_STATUS = "newOperatorTask";
 
     private static String serviceEndpoint;
     private static String username;
@@ -155,42 +155,33 @@ public class StoreHostObject extends ScriptableObject {
                                                                  Object[] args,
                                                                  Function funObj) throws StoreHostObjectException {
 
-//        List<Operator> operatorList = null;
+        Integer appId = (Integer)args[0];
 
-/*        List<Operator> operatorList = null;
+        List<Operator> allOperators = null;
+        List<Operator> existingAppOperators = null;
+        List<Operator> newOperatorList = new ArrayList<Operator>();
 
         try {
-            OperatorSearchDTO searchDTO = new OperatorSearchDTO();
-            operatorList = new OparatorService().loadOperators(searchDTO);
+            allOperators = new OparatorService().retrieveOperatorList();                        // get all the operatorsl
+            existingAppOperators = new OparatorService().getAllApplicationOperators(appId);     // get all the operators
+
+            boolean k;
+            for(Operator opSet1 : allOperators){
+                k=true;
+                for(Operator opSet2 : existingAppOperators){
+                    if(opSet1.getOperatorName().equals(opSet2.getOperatorName())){
+                        k=false;
+                    }
+                }
+                if(k)
+                    newOperatorList.add(opSet1);
+            }
 
         } catch (Exception e) {
             handleException("Error occured while retrieving operator list. ", e);
         }
 
-        return operatorList;
-*/
-
-
-        List<Operator> operatorList = new ArrayList<Operator>();
-
-        try {
-            Operator operator3 = new Operator();
-            Operator operator4 = new Operator();
-            operator3.setOperatorId(3);
-            operator3.setOperatorName("OPERATOR3");
-            operator3.setOperatorDescription("New Opearator 3");
-            operatorList.add(operator3);
-            operator4.setOperatorId(4);
-            operator4.setOperatorName("OPERATOR4");
-            operator4.setOperatorDescription("New Opearator 4");
-            operatorList.add(operator4);
-
-        } catch (Exception e) {
-            handleException("Error occured while retrieving operator list. ", e);
-        }
-
-        return operatorList;
-
+        return newOperatorList;
     }
 
 
@@ -210,9 +201,10 @@ public class StoreHostObject extends ScriptableObject {
 
 
         String status = null;
-        if (args != null && args.length >= 4 && isStringArray(args)) {
+        if (args != null && args.length >= 9 && isStringArray(args)) {
 
             String appName = (String)args[0];
+            String appId = (String)args[1];
             String usrName = (String)args[2];
 
             if (StringUtils.isEmpty(appName.trim())) {
@@ -226,10 +218,9 @@ public class StoreHostObject extends ScriptableObject {
 
             String callbackUrl = (String)args[4];
             String appDescription = (String)args[5];
-            String appId = (String)args[1];
             String deploymentPattern = (String)args[6];
             String operatorList = (String) args[7];
-
+            String tentDomain = (String) args[8];
 
             try {
 
@@ -285,7 +276,7 @@ public class StoreHostObject extends ScriptableObject {
                 Variable applicationId = new Variable(APPLICATION_ID, String.valueOf(applicationid));  // this is not used for workflow
                 Variable tier = new Variable(TIER, (String)args[3]);
                 Variable description = new Variable(DESCRIPTION, appDescription);
-                Variable tenantDomain = new Variable(TENANT_DOMAIN, "carbon.super");
+                Variable tenantDomain = new Variable(TENANT_DOMAIN, tentDomain);
                 Variable userName = new Variable(USER_NAME, (String)args[2]);
                 Variable externalWorkflowReference = new Variable(EXTERNAL_REFERENCE, appCreationWFExecutor.generateUUID());
                 Variable tiers = new Variable(TIERS_STR, tiersStr.toString());
@@ -299,35 +290,24 @@ public class StoreHostObject extends ScriptableObject {
                         .getThreadLocalCarbonContext()
                         .getUserRealm()
                         .getRealmConfiguration().getAdminPassword());
-                Variable operatorStatus = new Variable(OPERATOR_STATUS, "newOperatorTask");
+                Variable operatorStatus = new Variable(OPERATOR_STATUS, NEW_OPERATOR_STATUS);
 
 
-                Variable operators = new Variable(OPERATORS, operatorList);
+                Variable operators = new Variable(OPERATORS, operatorList.toLowerCase());
                 if (operators == null) {
                     throw new WorkflowException("No operator(s) defined!!");
                 }
 
-                log.info(" deployment type: " + deploymentType +
-                        "\n applicationName: " + applicationName +
-                        "\n workflow reference id: " + workflorRefId +
-                        "\n callback url: " + callBackUrl +
-                        "\n operators: " + operatorList +
-                        "\n applicationId: " + applicationId +
-                        "\n tier: " + tier +
-                        "\n description: " + description +
-                        "\n tenantDomain: " + tenantDomain +
-                        "\n userName: " + usrName +
-                        "\n externalWorkflowReference :" + externalWorkflowReference +
-                        "\n tiers :" + tiers +
-                        "\n service endpoint: " + serviceURLString +
-                        "\n --------------------------------" +
-                        "\n serviceURL: " + serviceURL +
-                        "\n mandateServiceURL: " + mandateServiceURL +
-                        "\n adminUserName: " + adminUserName +
-                        "\n adminPassword: " + adminPassword +
-                        "\n operatorStatus: " + operatorStatus
-                );
-
+                if (log.isDebugEnabled()) {
+                    log.debug("Calling the operatorApplicationApproval in for newly onboarded operators");
+                    log.debug(" deployment type: " + deploymentType + " applicationName: " + applicationName +
+                            " workflow reference id: " + workflorRefId + " callback url: " + callBackUrl + " operators: " + operatorList +
+                            " applicationId: " + applicationId + " tier: " + tier + " description: " + description +
+                            " tenantDomain: " + tenantDomain + " userName: " + usrName + " externalWorkflowReference :" + externalWorkflowReference +
+                            " tiers :" + tiers + " service endpoint: " + serviceURLString + " serviceURL: " + serviceURL +
+                            " mandateServiceURL: " + mandateServiceURL + " adminUserName: " + adminUserName + " adminPassword: " + adminPassword +
+                            " operatorStatus: " + operatorStatus );
+                }
 
                 List<Variable> variables = new ArrayList<Variable>();
 

@@ -622,6 +622,68 @@ public class OperatorDAO {
 	 * @throws Exception
 	 *             the exception
 	 */
+
+	public List<Operator> getAllApplicationOperators(Integer applicationId) throws SQLException, Exception {
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Operator> operatorList = new ArrayList<Operator>();
+
+		try {
+
+			conn = DbUtils.getDbConnection(DataSourceNames.WSO2TELCO_DEP_DB);
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT oa.id id, oa.applicationid, oa.operatorid, o.ID, o.operatorname, o.description");
+			sql.append(" FROM ");
+			sql.append(OparatorTable.OPERATOR_APPS.getTObject());
+            sql.append(" oa, ");
+            sql.append(OparatorTable.OPERATORS.getTObject());
+            sql.append(" o ");
+			sql.append(" WHERE oa.operatorid = o.ID  AND oa.applicationid = ?");
+
+			ps = conn.prepareStatement(sql.toString());
+            ps.setInt(1, applicationId);
+
+
+			log.debug("sql query in getAllApplicationOperators : " + ps);
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+
+				Operator oper = new Operator();
+                oper.setOperatorId(rs.getInt("ID"));
+                oper.setOperatorName(rs.getString("operatorname"));
+                oper.setOperatorDescription(rs.getString("description"));
+
+				operatorList.add(oper);
+			}
+		} catch (SQLException e) {
+
+			log.error("database operation error in seachOparators : ", e);
+			throw e;
+		} catch (Exception e) {
+
+			log.error("error in seachOparators : ", e);
+			throw e;
+		} finally {
+
+			DbUtils.closeAllConnections(ps, conn, rs);
+		}
+
+		return operatorList;
+	}
+
+	/**
+	 * Application operators.
+	 *
+	 * @param applicationId
+	 *            the applicationId
+	 * @return the list
+	 * @throws Exception
+	 *             the exception
+	 */
 	public List<OperatorApplicationDTO> getApplicationOperators(Integer applicationId) throws SQLException, Exception {
 
 		Connection con = DbUtils.getDbConnection(DataSourceNames.WSO2TELCO_DEP_DB);

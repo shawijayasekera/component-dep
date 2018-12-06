@@ -70,5 +70,6 @@ public class Constants {
 	public static final String WORKFLOW_PROPERTIES_XML_FILE = "workflow-configuration.xml";
     public static final String OPERATOR_STATUS = "newOperatorList";
     public static final String NEW_OPERATOR = "newOperatorTask";
+    public static final String OPERATOR_LIST = "operatorList";
 
 }

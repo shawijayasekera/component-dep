@@ -179,7 +179,36 @@ public class OparatorService {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+
+	public List<Operator> getAllApplicationOperators(Integer applicationId)
+			throws ApplicationException, BusinessException {
+
+        LOG.debug("calling getAllApplicationOperators , applicationId : "+ applicationId);
+		if (applicationId == null || applicationId <= 0) {
+
+			throw new ApplicationException(ApplicationErrorType.INVALID_APPLICATION_ID);
+		}
+
+		List<Operator> operators = null;
+
+		try {
+
+			operators = dao.getAllApplicationOperators(applicationId);
+		} catch (Exception e) {
+
+			throw new BusinessException(GenaralError.INTERNAL_SERVER_ERROR);
+		}
+
+		if (operators != null) {
+			return operators;
+
+		} else {
+
+			return Collections.emptyList();
+		}
+	}
+
+//	@SuppressWarnings("unchecked")
 	public List<OperatorApplicationDTO> getApplicationOperators(Integer applicationId)
 			throws ApplicationException, BusinessException {
 
