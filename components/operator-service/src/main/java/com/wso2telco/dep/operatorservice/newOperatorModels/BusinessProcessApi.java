@@ -1,4 +1,4 @@
-package com.wso2telco.dep.operatorservice.newModels;
+package com.wso2telco.dep.operatorservice.newOperatorModels;
 
 import feign.Headers;
 import feign.Param;

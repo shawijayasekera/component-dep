@@ -48,13 +48,14 @@ public class OperatorListConverter implements JavaDelegate {
 			operatorNames.add(operator.trim());
             operatorsRoles.add(operator.trim()+Constants.ADMIN_ROLE);
 			// TODO: make debug
-			log.info("Operator '" + operator.trim() + "' added to operatorList");
-		}
-	    arg0.setVariable("operatorList", operatorNames);
-        arg0.setVariable("operatorRoles", operatorsRoles);
+            if (log.isDebugEnabled()) {
+                log.debug("Operator List : " +operator.trim());
+            }
+        }
+	    arg0.setVariable(Constants.OPERATOR_LIST, operatorNames);
+        arg0.setVariable(Constants.OPERATOR_ROLES, operatorsRoles);
         String deploymentType = arg0.getVariable(Constants.DEPLOYMENT_TYPE) != null ? arg0.getVariable(Constants.DEPLOYMENT_TYPE).toString() : null;
         String operatorType = arg0.getVariable(Constants.OPERATOR_STATUS) != null ? arg0.getVariable(Constants.OPERATOR_STATUS).toString() : null;
-
 
         if(deploymentType.equalsIgnoreCase(Constants.HUB)) {
 
@@ -71,8 +72,6 @@ public class OperatorListConverter implements JavaDelegate {
             String operatorName = arg0.getVariable(Constants.OPERATORS) != null ? arg0.getVariable(Constants.OPERATORS).toString() : null;
 
             if(operatorType != null && operatorType.equalsIgnoreCase(Constants.NEW_OPERATOR)){
-                log.info("*********** New operator application approval task. *************");
-                log.info("New Operator list : " + operatorList);
 
                 AuthRequestInterceptor authRequestInterceptor = new AuthRequestInterceptor();
 

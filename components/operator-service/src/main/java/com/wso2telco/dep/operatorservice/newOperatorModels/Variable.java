@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wso2telco.dep.operatorservice.newModels;
+package com.wso2telco.dep.operatorservice.newOperatorModels;
 
 public class Variable {
     private String name;

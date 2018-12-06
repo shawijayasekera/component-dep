@@ -1,4 +1,4 @@
-package com.wso2telco.dep.operatorservice.newModels;
+package com.wso2telco.dep.operatorservice.newOperatorModels;
 
 import com.wso2telco.core.dbutils.fileutils.PropertyFileReader;
 import org.apache.commons.logging.Log;

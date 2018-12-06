@@ -1,4 +1,4 @@
-package com.wso2telco.dep.operatorservice.newModels;
+package com.wso2telco.dep.operatorservice.newOperatorModels;
 
 import com.wso2telco.core.dbutils.exception.BusinessException;
 import com.wso2telco.core.dbutils.exception.ThrowableError;

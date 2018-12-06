@@ -14,9 +14,11 @@ jagg.block("application/application-view", {
 
         var store = jagg.module("manager").getStoreHostObject();
 
+
         if (user) {
             username = user.username;
             var applicationName = request.getParameter("name");
+//            var appId = request.getParameter("id");
             var groupId = session.get("groupId");
 
             mod = jagg.module("application");
@@ -24,8 +26,6 @@ jagg.block("application/application-view", {
             application = result.application;
 
             var result2 = jagg.module("subscription").getAllSubscriptionsOfApplication(username, applicationName, 0, 10);
-
-            var log = new Log();
 
             if(Object.keys(result2.result).length>0){
                 //@todo handle error
@@ -39,8 +39,8 @@ jagg.block("application/application-view", {
             }
 
             grant_types = mod.getAllowedGrantTypes();
-            operators = store.retrieveNewOperatorList();
-            log.info(operators);
+            operators = store.retrieveNewOperatorList(application.id);
+
         }
 
         var tiers, result;

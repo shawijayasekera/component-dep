@@ -1,38 +1,36 @@
 <% jagg.template("application/application-view", function(inputs, outputs, jagg) {
- var application = outputs.application;
- var oauthapp = outputs.oauthapp;
- jagg.log(outputs.tiers);
+    var application = outputs.application;
+    var oauthapp = outputs.oauthapp;
+    jagg.log(outputs);
 
-var log = new Log();
-log.info(outputs);
-var i, length, app, api = outputs.api, apps = outputs.applications, user = outputs.user, operators=outputs.operators;
+    var i, length, app, api = outputs.api, apps = outputs.applications, user = outputs.user, operators=outputs.operators;
 
-var subsPermitted = jagg.module("subscription").hasSubscribePermission().permitted;
+    var subsPermitted = jagg.module("subscription").hasSubscribePermission().permitted;
 
 
-var app_tier;
-for(var i=0;i < outputs.tiers.length; i++){
-  if(outputs.tiers[i].tierName == application.tier){
-     app_tier = outputs.tiers[i]; 
-  }
-}
+    var app_tier;
+    for(var i=0;i < outputs.tiers.length; i++){
+        if(outputs.tiers[i].tierName == application.tier){
+            app_tier = outputs.tiers[i];
+        }
+    }
 
-var supportedLangs = jagg.module("subscription").getSupportedLanguages();
-%>
-<div class="page-header" id="Message">
-    <h2 id="application_name"><%= encode.forHtml(application.name) %></h2>
+    var supportedLangs = jagg.module("subscription").getSupportedLanguages();
+    %>
+    <div class="page-header" id="Message">
+        <h2 id="application_name"><%= encode.forHtml(application.name) %></h2>
     <input type="hidden" id="application-name" value="<%= encode.forHtml(application.name)%>" />
     <input type="hidden" id="application-id" value="<%= encode.forHtml(application.id)%>" />
 </div>
   <!-- Nav tabs -->
   <div class="white-wrapper">
     <ul class="nav nav-tabs" role="tablist">
-      <li role="presentation" class="active"><a title="<%=i18n.localize("Details")%>" href="#details" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Details")%></a></li>          
+      <li role="presentation" class="active"><a title="<%=i18n.localize("Details")%>" href="#details" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Details")%></a></li>
       <% if(application.status == "APPROVED"){ %>
       <li role="presentation"><a title="<%=i18n.localize("Production Keys")%>" href="#production" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Production Keys")%></a></li>
       <li role="presentation"><a title="<%=i18n.localize("Sandbox Keys")%>" href="#sandbox" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Sandbox Keys")%></a></li>
       <li role="presentation"><a title="<%=i18n.localize("Subscriptions")%>" href="#subscription" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Subscriptions")%></a></li>
-      <li role="presentation"><a title="<%=i18n.localize("New Operator")%>" href="#new-operator" aria-controls="profile" role="tab" data-toggle="tab">Operators</a></li>
+      <li role="presentation"><a title="<%=i18n.localize("Operators")%>" href="#new-operator" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("Operators")%></a></li>
       <% if (supportedLangs.langs != null) { %>
       <li role="presentation"><a title="<%=i18n.localize("SDKs")%>"  href="#sdks" aria-controls="profile" role="tab" data-toggle="tab"><%=i18n.localize("SDKs")%></a></li>
       <% } %>
@@ -73,9 +71,9 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
         var prodGrants = "";
         var redirect_uris = "";
         if(oauthapp.prodJsonString != undefined){
-          var tmp = parse(oauthapp.prodJsonString);
-          prodGrants = tmp["grant_types"];
-          redirect_uris = tmp["redirect_uris"];
+            var tmp = parse(oauthapp.prodJsonString);
+            prodGrants = tmp["grant_types"];
+            redirect_uris = tmp["redirect_uris"];
         }
         var prodapp = {
             name: application.name,
@@ -89,17 +87,17 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
             keyState: oauthapp.prodKeyState,
             grants: prodGrants
         }
-      %>
-      </div>
-      <%
+        %>
+        </div>
+        <%
         jagg.log(oauthapp);
 
         var sandboxGrants = "";
         var redirect_uris = "";
         if(oauthapp.sandboxJsonString != undefined){
-          var sandboxJson = parse(oauthapp.sandboxJsonString);
-          sandboxGrants = sandboxJson["grant_types"];
-          redirect_uris = sandboxJson["redirect_uris"];
+            var sandboxJson = parse(oauthapp.sandboxJsonString);
+            sandboxGrants = sandboxJson["grant_types"];
+            redirect_uris = sandboxJson["redirect_uris"];
         }
         var sandapp = {
             name: application.name,
@@ -113,89 +111,82 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
             keyState: oauthapp.sandboxKeyState,
             grants:sandboxGrants
         }
-      %>
-      <div role="tabpanel" class="tab-pane fade sandbox-keys" id="sandbox">
-      </div>
-      <div role="tabpanel" class="tab-pane fade" id="subscription">
-      <% jagg.includeBlock("subscription/subscribed-apis", { "application": application }); %>
+        %>
+        <div role="tabpanel" class="tab-pane fade sandbox-keys" id="sandbox">
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="subscription">
+        <% jagg.includeBlock("subscription/subscribed-apis", { "application": application }); %>
       </div>
       <div role="tabpanel" class="tab-pane fade" id="new-operator">
-      
-        <div class="col-xs-12 col-sm-12 col-md-8 col-lg-5 col-md-height col-md-top">
 
-                    <form class="form-api-subscription add-padding-4x">
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-5 col-md-height col-md-top">
 
-                    <div class="row add-margin-top-2x add-margin-bottom-3x">
+                    <form class="form-api-subscription">
+
+                    <div class="row add-margin-bottom-3x">
 		            <div class="col-md-12">
-                    <h4>Subscribe New Operators Types</h4>
-			        <p>You can subscribe your application with new operators from the below list.</p>
+                    <h4><%= i18n.localize("Subscribe New Operators")%></h4>
+			        <p><%= i18n.localize("You can subscribe your application with new operators from the below list.")%></p>
                     </div>
                     </div>
 
-                      <div class="form-group">
-                      <%
-                               var tiersAvailable = false;
-                               var mod = jagg.module("manager");
-                               var storeHostObject = mod.getStoreHostObject(); //changed from get getstoreObj
-                               result = storeHostObject.getDeploymentType();
-                                log.info(result);
-                                log.info(operators);
-                                log.info(tiersAvailable);
-                                tiersAvailable = true;
-                               if(result == "hub")
-                               {
-                               %>
-                                   <!-- this is oparater-->
-                                   <Label><b>Operator List</b></Label><br/>
+                              <br class="form-group">
+                              <%
+        var tiersAvailable = false;
+        var mod = jagg.module("manager");
+        var storeHostObject = mod.getStoreHostObject(); //changed from get getstoreObj
+        result = storeHostObject.getDeploymentType();
+        // log.info("result :" + result + "operators :" + operators + "tiersAvailable :" + tiersAvailable);
 
-                                   <select id="operator-list" name="operators" multiple="multiple" class="required"
-                                      <% if(operators.size()==1){%>
-                                      style="display: none;"
-                                    <%}%>>
+        tiersAvailable = true;
+        if(result == "hub")
+        {
+            if(operators.size()==1){%>
 
+                                   <Label><b><%= i18n.localize("Operator List")%></b></Label><br/>
+                                   <select id="operator-list" name="operators" multiple="multiple" class="required">
                                    <%
-                                   print(operators);
-                                   for(i = 0; i < operators.size(); i++) {
-                                        operator = operators.get(i);
-                                        %><option value="<%=operator.operatorName%>"><%= operator.getOperatorName()%></option>
+                for(i = 0; i < operators.size(); i++) {
+                    operator = operators.get(i);
+                    %><option value="<%=operator.operatorName%>"><%= operator.operatorName %></option>
                                    <%
-                                   }
+                }
+                // log.info(operator);
+                %>
+                </select>
+                </br>
+                </br>
 
-                                   log.info(operator);
-                                   %>
-                                   </select>
-                                   <br/> <br/>
-                                   <!-- this is oparater end-->
-                                   <%
+                <input type="hidden" id="tiers-list" value="Default" />
 
-                               }
-                      %>
-
-                      </div>
-
-                      <input type="hidden" id="tiers-list" value="Default" />
-
-                      	<button type="button" onclick="triggerOperatorSubscribe('<%=result%>')" id="operator-add-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
+       <button type="button" onclick="triggerOperatorSubscribe('<%=result%>')" id="operator-add-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
                                class="btn btn-primary btn-mobile<% if(!user) { %>need-login<% } %>">
 
                               <span class="icon fw-stack"
                       	        <i class="fw fw-subscribe fw-stack-1x"></i>
                       	        <i class="fw fw-circle-outline fw-stack-2x"></i>
                               </span>
-                              Subscribe
+                              <%=i18n.localize("Subscribe")%>
                               <%if(!tiersAvailable){%>
                               <span id="subsBtnDesc" class="help-block">You may not be entitled to any of the available tiers")</span>
                               <%}%>
                       	</button>
+                                    <%}else {%>
+                                   <Label><b><%=i18n.localize("New Operators Not Available")%></b></Label><br/>
+                                    <%  }%>
+                                   <br/> <br/>
+                                   <%
+        }
+        %>
 
-                      </form>
+        </form>
         </div>
+</div>
+</div>
 
-      </div>
+<div role="tabpanel" class="tab-pane fade" id="sdks">
 
-      <div role="tabpanel" class="tab-pane fade" id="sdks">
-
-        <%
+<%
         var supportedLangs = jagg.module("subscription").getSupportedLanguages();
 
         if (supportedLangs.langs != null) { %>
@@ -206,13 +197,13 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
             <br>
 
         <%  var langsArray = supportedLangs.langs.split(",");
-                for(var i = 0 ; i < langsArray.length ; i++ ) { %>
+            for(var i = 0 ; i < langsArray.length ; i++ ) { %>
                     <a href="/store/site/blocks/subscription/subscription-list/ajax/subscription-list.jag?action=generateSdk&selectedApp=<%=application.name%>&language=<%=langsArray[i]%>"
                           class="btn btn-primary " type="button" title="sdk generation">
                         <%=i18n.localize(langsArray[i],langsArray[i])%>&nbsp;<span class="glyphicon glyphicon-download-alt"></span>
                     </a>
         <%
-                }
+            }
         } else  { %>
         <div class="row">
             <div class="col-md-12"> <%=i18n.localize("No SDK configured")%> </div>
@@ -222,7 +213,7 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
         <% }%>
 
       </div>
-      <% } %>      
+      <% } %>
     </div>
   </div>
   <% if(application.status == "APPROVED"){ %>
@@ -233,12 +224,12 @@ var supportedLangs = jagg.module("subscription").getSupportedLanguages();
     $(document).ready(function() {
 
       $(".production-keys").keyWidget({ app: prodapp, type:"PRODUCTION", provide_keys: <%= site.mapExistingAuthApps %>, grant_types: grant_types });
-      $(".sandbox-keys").keyWidget({ app: sandapp, type:"SANDBOX", provide_keys: <%= site.mapExistingAuthApps %>, grant_types: grant_types}); 
+      $(".sandbox-keys").keyWidget({ app: sandapp, type:"SANDBOX", provide_keys: <%= site.mapExistingAuthApps %>, grant_types: grant_types});
 
       //activate a tab based on hash
       if(location.hash != undefined || location.hash !=""){
         $("a[href='"+location.hash+"']").tab("show");
-      }       
+      }
     });
   </script>
   <% jagg.includeBlock("application/application-keys", { "app" : prodapp, "type": "" , "gatewayurl":outputs.gatewayurl} ); %>
