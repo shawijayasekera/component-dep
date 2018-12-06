@@ -141,10 +141,10 @@
         tiersAvailable = true;
         if(result == "hub")
         {
-            if(operators.size()==1){%>
+            if(operators.size() >= 1){%>
 
-                                   <Label><b><%= i18n.localize("Operator List")%></b></Label><br/>
-                                   <select id="operator-list" name="operators" multiple="multiple" class="required">
+                <Label><b><%= i18n.localize("Operator List")%></b></Label><br/>
+                <select id="operator-list" name="operators" multiple="multiple" class="required">
                                    <%
                 for(i = 0; i < operators.size(); i++) {
                     operator = operators.get(i);
@@ -159,7 +159,7 @@
 
                 <input type="hidden" id="tiers-list" value="Default" />
 
-       <button type="button" onclick="triggerOperatorSubscribe('<%=result%>')" id="operator-add-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
+                <button type="button" onclick="triggerOperatorSubscribe('<%=result%>')" id="operator-add-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
                                class="btn btn-primary btn-mobile<% if(!user) { %>need-login<% } %>">
 
                               <span class="icon fw-stack"
@@ -170,12 +170,12 @@
                               <%if(!tiersAvailable){%>
                               <span id="subsBtnDesc" class="help-block">You may not be entitled to any of the available tiers")</span>
                               <%}%>
-                      	</button>
-                                    <%}else {%>
-                                   <Label><b><%=i18n.localize("New Operators Not Available")%></b></Label><br/>
-                                    <%  }%>
-                                   <br/> <br/>
-                                   <%
+                </button>
+                <%}else {%>
+                       <Label><b><%=i18n.localize("New Operators Not Available")%></b></Label><br/>
+                <%  }%>
+                <br/> <br/>
+               <%
         }
         %>
 
@@ -216,6 +216,13 @@
       <% } %>
     </div>
   </div>
+  <style>
+  .bootstrap-select.btn-group .dropdown-menu.inner {
+  max-height: 105px !important;
+  overflow-y: scroll!important;
+
+  }
+</style>
   <% if(application.status == "APPROVED"){ %>
   <script language="javascript">
     var grant_types = <%= stringify(grant_types)%>;
@@ -234,4 +241,5 @@
   </script>
   <% jagg.includeBlock("application/application-keys", { "app" : prodapp, "type": "" , "gatewayurl":outputs.gatewayurl} ); %>
   <% } %>
-<% }); %>
+<% });
+%>
