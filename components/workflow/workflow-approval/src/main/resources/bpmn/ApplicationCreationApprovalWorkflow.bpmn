@@ -23,6 +23,7 @@
         <activiti:formProperty id="adminPassword" name="admin Password" variable="adminPassword"/>
         <activiti:formProperty id="serviceURL" name="serviceURL" variable="serviceURL"/>
         <activiti:formProperty id="adminUserName" name="Admin User Name" required="true" variable="adminUserName"/>
+        <activiti:formProperty id="newOperatorList" name="New Operator Variable" variable="newOperatorList"/>
         <activiti:formProperty/>
       </extensionElements>
     </startEvent>
