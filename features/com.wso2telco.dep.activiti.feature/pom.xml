@@ -244,6 +244,9 @@
                                     <fileset dir="${project.build.directory}/../../../components/workflow/workflow-approval/target">
                                         <include name="SandboxApplicationCreationApprovalWorkflow.bar" />
                                     </fileset>
+                                    <fileset dir="${project.build.directory}/../../../components/workflow/workflow-approval/target">
+                                        <include name="SandboxSubscriptionCreationApprovalWorkflow.bar" />
+                                    </fileset>
                                 </copy>
 
                                 <!--copy todir="${tempdir}/activiti-explorer/WEB-INF/lib" overwrite="false">

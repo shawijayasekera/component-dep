@@ -7,6 +7,7 @@ var MultitenantUtils = Packages.org.wso2.carbon.utils.multitenancy.MultitenantUt
 var APIUtil = Packages.org.wso2.carbon.apimgt.impl.utils.APIUtil;
 var urlPrefix = jagg.getTenantURLPrefix("&");
 var result;
+var envType = site.environmentType;
 
 %>
         <%if(api!=null){
@@ -327,7 +328,7 @@ var result;
                                             <input type="hidden" id="tiers-list" value="Default" />
 
 
-                                            <button type="button" onclick="triggerSubscribe('<%=result%>')" id="subscribe-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
+                                            <button type="button" onclick="triggerSubscribe('<%=result%>','<%=envType%>')" id="subscribe-button" <%if(!tiersAvailable){%>disabled="disabled"<%}%>
                                             class="btn btn-primary btn-mobile<% if(!user) { %>need-login<% } %>">
                                     <span class="icon fw-stack"
                                         <i class="fw fw-subscribe fw-stack-1x"></i>

@@ -1,4 +1,4 @@
-function triggerSubscribe(deploymentType) {
+function triggerSubscribe(deploymentType, envType) {
 
 
     $.ajaxSetup({
@@ -24,7 +24,6 @@ function triggerSubscribe(deploymentType) {
     $(this).html(i18n.t('Please wait...')).attr('disabled', 'disabled');
 
 
-
     var operators = $("#operators").val();
     var operatorList, operatorStr = "";
 
@@ -39,6 +38,32 @@ function triggerSubscribe(deploymentType) {
         }
     }
 
+    if (envType === "sandbox") {
+        for (var i = 0; i < operators.length; i++) {
+            if (operatorStr.length > 0) {
+                operatorStr = operatorStr + "," + operators[i];
+            } else {
+                operatorStr = operators[i];
+            }
+        }
+        jagg.post("/site/blocks/workflow/workflow-operator/ajax/workflow-operator.jag", {
+            action: "addSubOperators",
+            applicationId: applicationId,
+            apiName: api.name,
+            apiVersion: api.version,
+
+
+            apiProvider: api.provider,
+            operatorList: operatorStr
+        }, function (result) {
+            if (result.error === false) {
+                jagg.message({
+                    content: result.message,
+                    type: "error"
+                });
+            }
+        }, "json");
+    }
 
     jagg.post("/site/blocks/subscription/subscription-add/ajax/subscription-add.jag", {
         action: "addSubscription",
@@ -48,11 +73,10 @@ function triggerSubscribe(deploymentType) {
         provider: api.provider,
         tier: tier,
         tenant: jagg.site.tenant
-    }, function(result) {
+    }, function (result) {
 
 
-
-        if (deploymentType == "hub") {
+        if (envType !== "sandbox" && deploymentType === "hub") {
 
             // Persist the selected list of operators.
 
@@ -61,7 +85,8 @@ function triggerSubscribe(deploymentType) {
                 if (operatorStr.length > 0) {
                     operatorStr = operatorStr + "," + operators[i];
                 } else {
-                    operatorStr = operators[i];;
+                    operatorStr = operators[i];
+                    ;
                 }
             }
             jagg.post("/site/blocks/workflow/workflow-operator/ajax/workflow-operator.jag", {
@@ -69,15 +94,16 @@ function triggerSubscribe(deploymentType) {
                 applicationId: applicationId,
                 apiName: api.name,
                 apiVersion: api.version,
+
+
                 apiProvider: api.provider,
                 operatorList: operatorStr
-            }, function(result) {
+            }, function (result) {
                 if (result.error == false) {
 
                 }
             }, "json");
         }
-
 
 
         $("#subscribe-button").html('Subscribe');
@@ -88,7 +114,7 @@ function triggerSubscribe(deploymentType) {
                 $('#messageModal h3.modal-title').html(i18n.t('Subscription Rejected'));
                 $('#messageModal div.modal-body').html('\n\n' + i18n.t('Your subscription has been rejected, since it does not satisfy the authentication requirements. Please contact the API publisher for more information.'));
                 $('#messageModal a.btn-primary').html(i18n.t('OK'));
-                $('#messageModal a.btn-primary').click(function() {
+                $('#messageModal a.btn-primary').click(function () {
                     window.location.reload();
                 });
             } else {
@@ -119,7 +145,7 @@ function triggerSubscribe(deploymentType) {
                             $('#messageModal div.modal-body').html(jsonObj.redirectConfirmationMsg);
                             $('#messageModal a.btn-primary').html(i18n.t('OK'));
                             $('#messageModal a.btn-other').html(i18n.t('Cancel Subscription'));
-                            $('#messageModal a.btn-primary').click(function() {
+                            $('#messageModal a.btn-primary').click(function () {
                                 if (additionalParameters != null && Object.keys(additionalParameters).length > 0) {
                                     var params = "";
                                     for (var key in additionalParameters) {
@@ -133,14 +159,14 @@ function triggerSubscribe(deploymentType) {
                                     location.href = jsonObj.redirectUrl + "?" + params;
                                 }
                             });
-                            $('#messageModal a.btn-other').click(function() {
+                            $('#messageModal a.btn-other').click(function () {
                                 jagg.post("/site/blocks/subscription/subscription-remove/ajax/subscription-remove.jag", {
                                     action: "removeSubscription",
                                     name: api.name,
                                     version: api.version,
                                     provider: api.provider,
                                     applicationId: applicationId
-                                }, function(result) {
+                                }, function (result) {
                                     if (!result.error) {
                                         $('#messageModal').modal("hide");
                                         window.location.reload();
@@ -150,7 +176,8 @@ function triggerSubscribe(deploymentType) {
                                             type: "error"
                                         });
                                     }
-                                }, "json");;
+                                }, "json");
+                                ;
                             });
                             $('#messageModal').modal();
                         }
@@ -168,10 +195,10 @@ function triggerSubscribe(deploymentType) {
                     }
                     $('#messageModal a.btn-primary').html(i18n.t('View Subscriptions'));
                     $('#messageModal a.btn-other').html(i18n.t('Stay on this page'));
-                    $('#messageModal a.btn-other').click(function() {
+                    $('#messageModal a.btn-other').click(function () {
                         window.location.reload();
                     });
-                    $('#messageModal a.btn-primary').click(function() {
+                    $('#messageModal a.btn-primary').click(function () {
                         urlPrefix = "name=" + applicationName + "&" + urlPrefix;
                         location.href = "../site/pages/application.jag?" + urlPrefix + "#subscription";
                     });
@@ -207,11 +234,12 @@ function triggerSubscribe(deploymentType) {
 
 
     }, "json");
+
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
 
-    $('input.rate_save').on('change', function() {
+    $('input.rate_save').on('change', function () {
         var api = jagg.api;
         jagg.post("/site/blocks/api/api-info/ajax/api-info.jag", {
             action: "addRating",
@@ -219,7 +247,7 @@ $(document).ready(function() {
             version: api.version,
             provider: api.provider,
             rating: $(this).val()
-        }, function(result) {
+        }, function (result) {
             if (result.error == false) {
                 if ($('.average-rating').length > 0) {
                     $('.average-rating').text(result.rating);
@@ -238,7 +266,7 @@ $(document).ready(function() {
         }, "json");
     });
 
-    $('.remove_rating').on("click", function() {
+    $('.remove_rating').on("click", function () {
         $('input.rate_save').val(0);
         $('input.rate_save').rating('rate', 0);
         var api = jagg.api;
@@ -247,7 +275,7 @@ $(document).ready(function() {
             name: api.name,
             version: api.version,
             provider: api.provider
-        }, function(result) {
+        }, function (result) {
             if (!result.error) {
                 $('.average-rating').hide();
                 $('.your_rating').text("N/A");
@@ -261,21 +289,21 @@ $(document).ready(function() {
     });
 
     $('.rating-tooltip-manual').rating({
-        extendSymbol: function() {
+        extendSymbol: function () {
             var title;
             $(this).tooltip({
                 container: 'body',
                 placement: 'bottom',
                 trigger: 'manual',
-                title: function() {
+                title: function () {
                     return title;
                 }
             });
-            $(this).on('rating.rateenter', function(e, rate) {
-                    title = rate;
-                    $(this).tooltip('show');
-                })
-                .on('rating.rateleave', function() {
+            $(this).on('rating.rateenter', function (e, rate) {
+                title = rate;
+                $(this).tooltip('show');
+            })
+                .on('rating.rateleave', function () {
                     $(this).tooltip('hide');
                 });
         }
@@ -283,7 +311,7 @@ $(document).ready(function() {
 
 
     $('#application-list').change(
-        function() {
+        function () {
             if ($(this).val() == "createNewApp") {
                 //$.cookie('apiPath','foo');
                 window.location.href = '../site/pages/application-add.jag?goBack=yes&' + urlPrefix;

@@ -188,6 +188,11 @@
                                         <include name="SandboxApplicationCreationApprovalWorkflow.bpmn" />
                                     </fileset>
                                 </zip>
+                                <zip destfile="${project.build.directory}/SandboxSubscriptionCreationApprovalWorkflow.bar">
+                                    <fileset dir="src/main/resources/bpmn">
+                                        <include name="SandboxSubscriptionCreationApprovalWorkflow.bpmn" />
+                                    </fileset>
+                                </zip>
                             </tasks>
                         </configuration>
                     </execution>
