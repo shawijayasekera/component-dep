@@ -182,6 +182,12 @@
                                         <include name="SubscriptionCreationApprovalWorkflow.bpmn" />
                                     </fileset>
                                 </zip>
+                                <echo message="Creating bar: ${project.build.directory}/SandboxApplicationCreationApprovalWorkflow-${project.version}.bar,SandboxSubscriptionCreationApprovalWorkflow-${project.version}.bar" />
+                                <zip destfile="${project.build.directory}/SandboxApplicationCreationApprovalWorkflow.bar">
+                                    <fileset dir="src/main/resources/bpmn">
+                                        <include name="SandboxApplicationCreationApprovalWorkflow.bpmn" />
+                                    </fileset>
+                                </zip>
                             </tasks>
                         </configuration>
                     </execution>
