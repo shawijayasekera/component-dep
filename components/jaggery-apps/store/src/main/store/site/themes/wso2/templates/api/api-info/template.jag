@@ -7,7 +7,8 @@ var MultitenantUtils = Packages.org.wso2.carbon.utils.multitenancy.MultitenantUt
 var APIUtil = Packages.org.wso2.carbon.apimgt.impl.utils.APIUtil;
 var urlPrefix = jagg.getTenantURLPrefix("&");
 var result;
-var envType = site.environmentType;
+var envType;
+//var envType = site.environmentType;
 
 %>
         <%if(api!=null){
@@ -223,6 +224,7 @@ var envType = site.environmentType;
                                          var mod = jagg.module("manager");
                                         var storeHostObject = mod.getStoreHostObject(); //changed from get getstoreObj
                                           result = storeHostObject.getDeploymentType();
+                                          envType = storeHostObject.getEnvironmentType();
 
                                          if(result == "hub")
                                          {

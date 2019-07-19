@@ -43,6 +43,7 @@ import com.wso2telco.dep.operatorservice.service.OparatorService;
 public class StoreHostObject extends ScriptableObject {
 	
 	private static final String DEPLOYMENT_TYPE_SYSTEM_PARAM = "DEPLOYMENT_TYPE";
+	private static final String ENVIRONMENT_TYPE_SYSTEM_PARAM = "ENVIRONMENT_TYPE";
 
     /**
      *
@@ -137,6 +138,11 @@ public class StoreHostObject extends ScriptableObject {
     	
     	return System.getProperty(DEPLOYMENT_TYPE_SYSTEM_PARAM, "hub");
     			
+    }
+    
+    public static String jsFunction_getEnvironmentType(){
+    	
+    	return System.getProperty(ENVIRONMENT_TYPE_SYSTEM_PARAM, "production");		
     }
 
     public static void jsFunction_removeAPISubscription(Context cx,

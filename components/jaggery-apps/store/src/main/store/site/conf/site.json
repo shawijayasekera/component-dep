@@ -55,7 +55,5 @@
         "context":"",
       //"regContext":"" // Use only if different path is used for registry
     },
-  "mapExistingAuthApps" : false,
-  "environmentType" : "sandbox"
-
+  "mapExistingAuthApps" : false
 }
